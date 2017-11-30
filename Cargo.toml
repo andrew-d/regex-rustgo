@@ -3,9 +3,13 @@ name = "regex-rustgo"
 version = "0.1.0"
 authors = ["Andrew Dunham <adunham@stripe.com>"]
 
+[lib]
+crate-type = ["staticlib"]
+
 [dependencies]
-regex = { git = "https://github.com/vmx/regex.git", rev = "77a21dfd93eb53958639330df625ee2b7199a3a2", default-features = false }
+regex = "*"
+#regex = { git = "https://github.com/vmx/regex.git", rev = "77a21dfd93eb53958639330df625ee2b7199a3a2", default-features = false }
 
 [patch.crates-io]
-aho-corasick = { git = "https://github.com/BurntSushi/aho-corasick.git", rev = "0440919f725e058d9f08e477fb634edbb93c6689" }
-memchr = { git = "https://github.com/BurntSushi/rust-memchr.git", rev = "47c5d86187753ebc1f574f0f958615b8991749f8" }
+#aho-corasick = { git = "https://github.com/BurntSushi/aho-corasick.git", rev = "0440919f725e058d9f08e477fb634edbb93c6689" }
+#memchr = { git = "https://github.com/BurntSushi/rust-memchr.git", rev = "47c5d86187753ebc1f574f0f958615b8991749f8" }
