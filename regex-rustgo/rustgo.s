@@ -1,0 +1,13 @@
+TEXT ·IsMatch(SB), 0, $16384-16
+	MOVQ dst+0(FP), DI
+	MOVQ in+8(FP), SI
+
+	MOVQ SP, BX
+	ADDQ $16384, SP
+	ANDQ $~15, SP
+
+	MOVQ ·_is_match(SB), AX
+	CALL AX
+
+	MOVQ BX, SP
+	RET
