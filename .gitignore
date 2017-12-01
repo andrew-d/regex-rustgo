@@ -5,4 +5,4 @@ Cargo.lock
 *.a
 *.o
 *.syso
-/regextest
+/regexbench

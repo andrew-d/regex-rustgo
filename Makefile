@@ -6,7 +6,7 @@ TARGET           := $(shell GOOS=$(shell go env GOHOSTOS) GOARCH=$(shell go env 
                             go run target.go $(shell go env GOOS) $(shell go env GOARCH))
 RUSTGO_SYSO      := regex-rustgo/libregex_rustgo_$(shell go env GOOS)_$(shell go env GOARCH).syso
 
-regextest: $(RUSTGO_SYSO) regex-rustgo/rustgo.go regex-rustgo/rustgo.s main.go
+regexbench: $(RUSTGO_SYSO) regex-rustgo/rustgo.go regex-rustgo/rustgo.s main.go
 ifeq ($(shell go env GOOS),darwin)
 	go build -ldflags '-linkmode external -s -extldflags -lresolv' -o $@
 else
@@ -23,13 +23,13 @@ endif
 target/$(TARGET)/release/libregex_rustgo.a: src/* Cargo.toml Cargo.lock
 		cargo build --release --target $(TARGET)
 
-.PHONY: test
-test: regextest
-		@./regextest
+.PHONY: bench
+bench: regexbench
+		@./regexbench
 
 .PHONY: clean
 clean:
-		rm -rf regex-rustgo/*.[oa] regex-rustgo/*.syso target regextest
+		rm -rf regex-rustgo/*.[oa] regex-rustgo/*.syso target regexbench
 
 .PHONY: env
 env:
