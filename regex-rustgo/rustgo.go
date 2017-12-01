@@ -37,8 +37,6 @@ func IsMatch(buf []byte) bool {
 	stack := stackPool.Get().(*Stack)
 	defer stackPool.Put(stack)
 
-	//fmt.Printf("stack = 0x%x\n", stack.Bottom())
-
 	out := new(bool)
 	isMatch(
 		unsafe.Pointer(&buf[0]),
