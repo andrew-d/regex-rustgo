@@ -7,7 +7,11 @@ TARGET           := $(shell GOOS=$(shell go env GOHOSTOS) GOARCH=$(shell go env 
                             go run target.go $(shell go env GOOS) $(shell go env GOARCH))
 
 regextest: regex-rustgo/libregex_rustgo.syso regex-rustgo/rustgo.go regex-rustgo/rustgo.s
+ifeq ($(shell go env GOOS),darwin)
 	go build -ldflags '-linkmode external -s -extldflags -lresolv' -o $@
+else
+	go build -ldflags '-linkmode external -extldflags -ldl' -o $@
+endif
 
 regex-rustgo/libregex_rustgo.syso: target/$(TARGET)/release/libregex_rustgo.a
 ifeq ($(shell go env GOOS),darwin)
