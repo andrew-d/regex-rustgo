@@ -1,4 +1,4 @@
-package regex
+package stack
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ type Stack struct {
 	mmap []byte
 }
 
-func NewStack() (*Stack, error) {
+func New() (*Stack, error) {
 	data, err := syscall.Mmap(
 		-1,
 		0,
@@ -30,7 +30,7 @@ func NewStack() (*Stack, error) {
 		return nil, err
 	}
 
-	fmt.Printf("allocated stack at: 0x%x\n", unsafe.Pointer(&data[0]))
+	// fmt.Printf("allocated stack at: 0x%x\n", unsafe.Pointer(&data[0]))
 
 	// Since stacks grow from the top down on x86, we want to protect the
 	// "bottom" of the stack to prevent a stack overflow.

@@ -7,8 +7,13 @@ import (
 )
 
 func main() {
-	match := []byte("2017-11-12")
-	out := regex.IsMatch(match)
 
-	fmt.Printf("IsMatch returned: %+v\n", out)
+	fmt.Println("started")
+	defer fmt.Println("finished")
+
+	re := regex.Compile(`^\d{4}-\d{2}-\d{2}$`)
+	defer re.Free()
+
+	const test = "2017-11-12"
+	fmt.Printf("Trying to match %q: %v\n", test, re.Match(test))
 }

@@ -1,5 +1,5 @@
 IMPORT_PATH      := github.com/andrew-d/regex-rustgo
-SYMBOL           := is_match
+SYMBOLS          := is_match rust_compile rust_free
 LD               ?= ld
 export RUSTFLAGS ?= -Ctarget-cpu=native
 TARGET           := $(shell GOOS=$(shell go env GOHOSTOS) GOARCH=$(shell go env GOHOSTARCH) \
@@ -15,9 +15,9 @@ endif
 
 $(RUSTGO_SYSO): target/$(TARGET)/release/libregex_rustgo.a
 ifeq ($(shell go env GOOS),darwin)
-		$(LD) -r -o $@ -arch x86_64 -u "_$(SYMBOL)" $^
+		$(LD) -r -o $@ -arch x86_64 $(addprefix -u _,$(SYMBOLS)) $^
 else
-		$(LD) -r -o $@ --gc-sections -u "$(SYMBOL)" $^
+		$(LD) -r -o $@ --gc-sections $(addprefix -u ,$(SYMBOLS)) $^
 endif
 
 target/$(TARGET)/release/libregex_rustgo.a: src/* Cargo.toml Cargo.lock

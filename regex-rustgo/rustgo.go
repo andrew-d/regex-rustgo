@@ -2,11 +2,15 @@
 package regex
 
 import (
+	"fmt"
+	"runtime"
 	"sync"
 	"unsafe"
+
+	"github.com/andrew-d/regex-rustgo/regex-rustgo/internal/stack"
 )
 
-// Not needed //go:binary-only-package
+var _ = fmt.Printf
 
 //go:cgo_import_static is_match
 //go:cgo_import_dynamic is_match
@@ -14,14 +18,28 @@ import (
 var is_match uintptr
 var _is_match = &is_match
 
-func isMatch(ptr unsafe.Pointer, len uint32, out *bool, stack unsafe.Pointer)
+//go:cgo_import_static rust_compile
+//go:cgo_import_dynamic rust_compile
+//go:linkname rust_compile rust_compile
+var rust_compile uintptr
+var _rust_compile = &rust_compile
+
+//go:cgo_import_static rust_free
+//go:cgo_import_dynamic rust_free
+//go:linkname rust_free rust_free
+var rust_free uintptr
+var _rust_free = &rust_free
+
+func isMatch(re, buf unsafe.Pointer, len uint32, out *bool, stack unsafe.Pointer)
+func rustCompile(buf unsafe.Pointer, len uint32, out *unsafe.Pointer, stack unsafe.Pointer)
+func rustFree(buf unsafe.Pointer, stack unsafe.Pointer)
 
 var stackPool *sync.Pool
 
 func init() {
 	stackPool = &sync.Pool{
 		New: func() interface{} {
-			data, err := NewStack()
+			data, err := stack.New()
 			if err != nil {
 				panic(err)
 			}
@@ -31,17 +49,60 @@ func init() {
 	}
 }
 
-// IsMatch returns a boolean TKTK
-func IsMatch(buf []byte) bool {
+type Regex struct {
+	re unsafe.Pointer
+}
+
+func Compile(s string) Regex {
 	// Get a stack buffer
-	stack := stackPool.Get().(*Stack)
+	stack := stackPool.Get().(*stack.Stack)
 	defer stackPool.Put(stack)
 
-	out := new(bool)
+	b := []byte(s)
+
+	var re unsafe.Pointer
+	rustCompile(
+		unsafe.Pointer(&b[0]),
+		uint32(len(b)),
+		&re,
+		stack.Bottom(),
+	)
+
+	runtime.KeepAlive(b)
+
+	fmt.Printf("compiled regex = 0x%x\n", re)
+	return Regex{re}
+}
+
+func (r *Regex) Free() {
+	if r.re == nil {
+		return
+	}
+
+	// Get a stack buffer
+	stack := stackPool.Get().(*stack.Stack)
+	defer stackPool.Put(stack)
+
+	rustFree(
+		r.re,
+		stack.Bottom(),
+	)
+	r.re = nil
+}
+
+func (r *Regex) Match(s string) bool {
+	// Get a stack buffer
+	stack := stackPool.Get().(*stack.Stack)
+	defer stackPool.Put(stack)
+
+	buf := []byte(s)
+
+	var ret bool
 	isMatch(
+		r.re,
 		unsafe.Pointer(&buf[0]),
 		uint32(len(buf)),
-		out,
+		&ret,
 		stack.Bottom(),
 	)
 
@@ -51,6 +112,6 @@ func IsMatch(buf []byte) bool {
 	// sync.Pool, we need to call the following to keep the value alive.
 	//     runtime.KeepAlive(stack)
 
-	// Extract and pass on return values.
-	return *out
+	runtime.KeepAlive(buf)
+	return ret
 }
