@@ -6,7 +6,7 @@ export RUSTFLAGS ?= -Ctarget-cpu=native
 TARGET           := $(shell GOOS=$(shell go env GOHOSTOS) GOARCH=$(shell go env GOHOSTARCH) \
                             go run target.go $(shell go env GOOS) $(shell go env GOARCH))
 
-regextest: regex-rustgo/libregex_rustgo.syso
+regextest: regex-rustgo/libregex_rustgo.syso regex-rustgo/rustgo.go regex-rustgo/rustgo.s
 	go build -ldflags '-linkmode external -s -extldflags -lresolv' -o $@
 
 regex-rustgo/libregex_rustgo.syso: target/$(TARGET)/release/libregex_rustgo.a

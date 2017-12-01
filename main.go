@@ -8,13 +8,7 @@ import (
 
 func main() {
 	match := []byte("2017-11-12")
+	out := regex.IsMatchWithStack(match)
 
-	var s [64]byte
-	copy(s[:], match)
-
-	out := new(bool)
-
-	regex.IsMatch(&s, out)
-
-	fmt.Printf("IsMatch returned: %+v\n", *out)
+	fmt.Printf("IsMatch returned: %+v\n", out)
 }
