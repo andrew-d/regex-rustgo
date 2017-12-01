@@ -22,7 +22,7 @@ TEXT ·isMatch(SB),NOSPLIT,$0-32
 	MOVQ len+8(FP), SI
 	MOVQ out+16(FP), DX
 
-	// In the SysV calling convention (but not Go's), RBX, RBP, and R12–R15
+	// In the SysV calling convention (but not Go's), RBX, RBP, and R12-R15
 	// are callee-save, so use RBX to save the existing stack pointer, and
 	// then swap to our passed one.
 	MOVQ SP, BX
@@ -43,10 +43,11 @@ TEXT ·isMatch(SB),NOSPLIT,$0-32
 	//
 	//     mov rax, qword [gs:0x8a0]
 	//
-	// Which seems to indicate that TLS on OS X doesn't use a register and
-	// thus doesn't need to be saved.
+	// Which seems to indicate that TLS on OS X doesn't use a regular
+	// register and thus doesn't need to be saved (since I'm assuming that
+	// Rust doesn't screw with segment registers).
 
-	// Load the address of our function-to-call into EAX and call it.
+	// Load the address of our function-to-call into RAX and call it.
 	MOVQ ·_is_match(SB), AX
 	CALL AX
 
