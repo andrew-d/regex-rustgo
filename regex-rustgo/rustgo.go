@@ -2,6 +2,7 @@
 package regex
 
 import (
+	"fmt"
 	"sync"
 	"syscall"
 	"unsafe"
@@ -15,8 +16,9 @@ import (
 var is_match uintptr
 var _is_match = &is_match
 
-// IsMatch returns a boolean TKTK
-func IsMatch(ptr unsafe.Pointer, len uint32, out *bool, stack unsafe.Pointer)
+func isMatch(ptr unsafe.Pointer, len uint32, out *bool, stack unsafe.Pointer)
+
+const stackSize = 2 * 1024 * 1024
 
 var stackPool *sync.Pool
 
@@ -26,7 +28,7 @@ func init() {
 			data, err := syscall.Mmap(
 				-1,
 				0,
-				2*1024*1024,
+				stackSize,
 				syscall.PROT_READ|syscall.PROT_WRITE,
 				syscall.MAP_SHARED|syscall.MAP_ANON,
 			)
@@ -39,13 +41,19 @@ func init() {
 	}
 }
 
-func IsMatchWithStack(buf []byte) bool {
-	// Allocate us a stack
+// IsMatch returns a boolean TKTK
+func IsMatch(buf []byte) bool {
+	// Get a stack buffer
 	stack := stackPool.Get().(unsafe.Pointer)
 	defer stackPool.Put(stack)
 
+	// Increment it
+	stack = unsafe.Pointer(uintptr(stack) + stackSize - 32)
+
+	fmt.Printf("stack = 0x%x\n", stack)
+
 	out := new(bool)
-	IsMatch(
+	isMatch(
 		unsafe.Pointer(&buf[0]),
 		uint32(len(buf)),
 		out,
