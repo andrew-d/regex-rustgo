@@ -2,9 +2,7 @@
 package regex
 
 import (
-	"fmt"
 	"sync"
-	"syscall"
 	"unsafe"
 )
 
@@ -18,25 +16,17 @@ var _is_match = &is_match
 
 func isMatch(ptr unsafe.Pointer, len uint32, out *bool, stack unsafe.Pointer)
 
-const stackSize = 2 * 1024 * 1024
-
 var stackPool *sync.Pool
 
 func init() {
 	stackPool = &sync.Pool{
 		New: func() interface{} {
-			data, err := syscall.Mmap(
-				-1,
-				0,
-				stackSize,
-				syscall.PROT_READ|syscall.PROT_WRITE,
-				syscall.MAP_SHARED|syscall.MAP_ANON,
-			)
+			data, err := NewStack()
 			if err != nil {
 				panic(err)
 			}
 
-			return unsafe.Pointer(&data[0])
+			return data
 		},
 	}
 }
@@ -44,20 +34,25 @@ func init() {
 // IsMatch returns a boolean TKTK
 func IsMatch(buf []byte) bool {
 	// Get a stack buffer
-	stack := stackPool.Get().(unsafe.Pointer)
+	stack := stackPool.Get().(*Stack)
 	defer stackPool.Put(stack)
 
-	// Increment it
-	stack = unsafe.Pointer(uintptr(stack) + stackSize - 32)
-
-	fmt.Printf("stack = 0x%x\n", stack)
+	//fmt.Printf("stack = 0x%x\n", stack.Bottom())
 
 	out := new(bool)
 	isMatch(
 		unsafe.Pointer(&buf[0]),
 		uint32(len(buf)),
 		out,
-		stack,
+		stack.Bottom(),
 	)
+
+	// NOTE: since we put the Stack object back into our sync.Pool, we
+	// don't need to worry about keeping it alive through the call to the
+	// above function.  However, if we ever move away from using a
+	// sync.Pool, we need to call the following to keep the value alive.
+	//     runtime.KeepAlive(stack)
+
+	// Extract and pass on return values.
 	return *out
 }

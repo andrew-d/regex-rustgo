@@ -23,6 +23,10 @@ endif
 target/$(TARGET)/release/libregex_rustgo.a: src/* Cargo.toml Cargo.lock
 		cargo build --release --target $(TARGET)
 
+.PHONY: test
+test: regextest
+		@./regextest
+
 .PHONY: clean
 clean:
 		rm -rf regex-rustgo/*.[oa] regex-rustgo/*.syso target regextest
