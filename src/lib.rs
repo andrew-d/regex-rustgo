@@ -25,7 +25,7 @@ pub unsafe extern fn rust_compile(ptr: *const u8, len: u32, out: *mut *mut Regex
 }
 
 fn rust_compile_internal(s: &str) -> Box<Regex> {
-    println!("creating regex from string: {}", s);
+    // println!("creating regex from string: {}", s);
     Box::new(Regex::new(s).unwrap())
 }
 
@@ -33,7 +33,7 @@ fn rust_compile_internal(s: &str) -> Box<Regex> {
 #[no_mangle]
 pub unsafe extern fn rust_free(ptr: *mut Regex) {
     let ptr: Box<Regex> = Box::from_raw(ptr);
-    println!("freeing regex");
+    // println!("freeing regex");
     mem::drop(ptr);
 }
 
@@ -46,7 +46,7 @@ fn is_match_internal(re: &Regex, buf: &[u8]) -> bool {
 pub unsafe extern fn is_match(re: *mut Regex, ptr: *const u8, len: u32, out: &mut bool) {
     if let Some(re) = re.as_ref() {
         let buf = slice::from_raw_parts(ptr, len as usize);
-        println!("matching a buffer of length {}: {:?}", len, buf);
+        // println!("matching a buffer of length {}: {:?}", len, buf);
         *out = is_match_internal(re, buf);
     }
 }

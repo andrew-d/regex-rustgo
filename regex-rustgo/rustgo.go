@@ -69,8 +69,6 @@ func Compile(s string) Regex {
 	)
 
 	runtime.KeepAlive(b)
-
-	fmt.Printf("compiled regex = 0x%x\n", re)
 	return Regex{re}
 }
 

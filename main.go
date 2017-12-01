@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+	"testing"
 
 	"github.com/andrew-d/regex-rustgo/regex-rustgo"
 )
@@ -10,9 +13,25 @@ func main() {
 	fmt.Println("started")
 	defer fmt.Println("finished")
 
-	re := regex.Compile(`^\d{4}-\d{2}-\d{2}$`)
-	defer re.Free()
+	x := strings.Repeat("x", 50) + "y"
 
-	test := "2017-11-12"
-	fmt.Printf("Trying to match %q: %v\n", test, re.Match(test))
+	gore := regexp.MustCompile(`.y`)
+	fmt.Printf("BenchmarkGoRegexp\t%v\n", testing.Benchmark(func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			if !gore.MatchString(x) {
+				b.Fatalf("no match!")
+			}
+		}
+	}))
+
+	rustre := regex.Compile(`.y`)
+	defer rustre.Free()
+
+	fmt.Printf("BenchmarkRustRegexp\t%v\n", testing.Benchmark(func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			if !rustre.Match(x) {
+				b.Fatalf("no match!")
+			}
+		}
+	}))
 }
