@@ -21,11 +21,6 @@ a starting point for this one.
 The essentials behind how this works are very similar to those described in the
 above blog post, with some modifications detailed below:
 
-- We allocate new thread stacks with `mmap` and swap to these before calling
-	our Rust code.  This lets us use arbitrarily-large stacks for Rust without
-	needing to worry about Go's split stacks.  This also lets us mark the
-	assembly function as `NOSPLIT`, which removes the prelude that checks for
-	stack sizes, saving us a couple instructions :-)
 - We don't use the `no_std` feature in Rust, since the `regex` library doesn't
 	support it.
 - I've wrapped the underlying Rust functions in a simple Go wrapper, exposing
@@ -33,6 +28,19 @@ above blog post, with some modifications detailed below:
 	hood.  Note that this is still a bit of a work-in-progress 😃
 - I've switched from using `go tool` in the Makefile to generating `.syso`
 	files, which Go will properly include when running `go build`.
+- For the general `Regex` type, we allocate new thread stacks with `mmap` and
+	swap to these before calling our Rust code.  This lets us use
+	arbitrarily-large stacks for Rust without needing to worry about Go's split
+	stacks, and intelligently pools the stacks that are in-use.  As a slight
+	bonus, using our own stacks also lets us mark the assembly function as
+	`NOSPLIT`, which removes the prelude that checks for stack sizes, saving us a
+	couple instructions :-)
+- I've also added a `STRegex` type, which preallocates a single stack for use
+	by the object; this is faster, since we avoid having to pay the overhead of
+	`sync.Pool`, but means that each regex involves allocating a full stack's
+	worth of memory (currently, stacks are 3MiB).  This also means that the
+	`STRegex` cannot be used concurrently, since every single method on the
+	object reuses the same stack.
 
 [rustgo]: https://blog.filippo.io/rustgo/
 [dal]: https://github.com/FiloSottile/ed25519-dalek-rustgo/
@@ -51,4 +59,5 @@ the following results:
 ```
 BenchmarkGoRegexp        1000000              1466 ns/op
 BenchmarkRustRegexp      5000000               255 ns/op
+BenchmarkSTRustRegexp   10000000               198 ns/op
 ```

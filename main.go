@@ -34,4 +34,18 @@ func main() {
 			}
 		}
 	}))
+
+	strustre, err := regex.CompileST(`.y`)
+	if err != nil {
+		panic(err)
+	}
+	defer strustre.Free()
+
+	fmt.Printf("BenchmarkSTRustRegexp\t%v\n", testing.Benchmark(func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			if !strustre.Match(x) {
+				b.Fatalf("no match!")
+			}
+		}
+	}))
 }
