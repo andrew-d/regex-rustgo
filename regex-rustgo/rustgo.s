@@ -1,6 +1,6 @@
 #include "go_asm.h"
 
-TEXT ·isMatch(SB),4,$0-32
+TEXT ·isMatch(SB),0,$0-32
 	// Set up first two arguments for the function-to-call.  The SysV
 	// calling convention is RDI, RSI, RDX, RCX (etc.), so we load the
 	// values from the stack and into our arguments.
