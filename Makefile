@@ -1,19 +1,19 @@
 IMPORT_PATH      := github.com/andrew-d/regex-rustgo
-INSTALL_PATH     := $(shell go env GOPATH)/pkg/$(shell go env GOOS)_$(shell go env GOARCH)/$(IMPORT_PATH)
 SYMBOL           := is_match
 LD               ?= ld
 export RUSTFLAGS ?= -Ctarget-cpu=native
 TARGET           := $(shell GOOS=$(shell go env GOHOSTOS) GOARCH=$(shell go env GOHOSTARCH) \
                             go run target.go $(shell go env GOOS) $(shell go env GOARCH))
+RUSTGO_SYSO      := regex-rustgo/libregex_rustgo_$(shell go env GOOS)_$(shell go env GOARCH).syso
 
-regextest: regex-rustgo/libregex_rustgo.syso regex-rustgo/rustgo.go regex-rustgo/rustgo.s
+regextest: $(RUSTGO_SYSO) regex-rustgo/rustgo.go regex-rustgo/rustgo.s
 ifeq ($(shell go env GOOS),darwin)
 	go build -ldflags '-linkmode external -s -extldflags -lresolv' -o $@
 else
 	go build -ldflags '-linkmode external -extldflags -ldl' -o $@
 endif
 
-regex-rustgo/libregex_rustgo.syso: target/$(TARGET)/release/libregex_rustgo.a
+$(RUSTGO_SYSO): target/$(TARGET)/release/libregex_rustgo.a
 ifeq ($(shell go env GOOS),darwin)
 		$(LD) -r -o $@ -arch x86_64 -u "_$(SYMBOL)" $^
 else
@@ -25,4 +25,9 @@ target/$(TARGET)/release/libregex_rustgo.a: src/* Cargo.toml Cargo.lock
 
 .PHONY: clean
 clean:
-		rm -rf regex-rustgo/*.[oa] regex-rustgo/*.syso target test
+		rm -rf regex-rustgo/*.[oa] regex-rustgo/*.syso target regextest
+
+.PHONY: env
+env:
+		@echo "TARGET = $(TARGET)"
+		@echo "RUSTGO_SYSO = $(RUSTGO_SYSO)"
