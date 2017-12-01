@@ -1,9 +1,9 @@
-//go:binary-only-package
-
 // TODO: docs!
 package regex
 
 import _ "unsafe"
+
+//go:binary-only-package
 
 //go:cgo_import_static is_match
 //go:cgo_import_dynamic is_match
