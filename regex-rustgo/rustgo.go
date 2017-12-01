@@ -30,9 +30,9 @@ var _rust_compile = &rust_compile
 var rust_free uintptr
 var _rust_free = &rust_free
 
-func isMatch(re, buf unsafe.Pointer, len uint32, out *bool, stack unsafe.Pointer)
-func rustCompile(buf unsafe.Pointer, len uint32, out *unsafe.Pointer, stack unsafe.Pointer)
-func rustFree(buf unsafe.Pointer, stack unsafe.Pointer)
+func isMatch(stack, re, buf unsafe.Pointer, len uint32, out *bool)
+func rustCompile(stack, buf unsafe.Pointer, len uint32, out *unsafe.Pointer)
+func rustFree(stack, buf unsafe.Pointer)
 
 var stackPool *sync.Pool
 
@@ -62,10 +62,10 @@ func Compile(s string) Regex {
 
 	var re unsafe.Pointer
 	rustCompile(
+		stack.Bottom(),
 		unsafe.Pointer(&b[0]),
 		uint32(len(b)),
 		&re,
-		stack.Bottom(),
 	)
 
 	runtime.KeepAlive(b)
@@ -84,8 +84,8 @@ func (r *Regex) Free() {
 	defer stackPool.Put(stack)
 
 	rustFree(
-		r.re,
 		stack.Bottom(),
+		r.re,
 	)
 	r.re = nil
 }
@@ -99,11 +99,11 @@ func (r *Regex) Match(s string) bool {
 
 	var ret bool
 	isMatch(
+		stack.Bottom(),
 		r.re,
 		unsafe.Pointer(&buf[0]),
 		uint32(len(buf)),
 		&ret,
-		stack.Bottom(),
 	)
 
 	// NOTE: since we put the Stack object back into our sync.Pool, we

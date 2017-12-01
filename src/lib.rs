@@ -11,8 +11,6 @@ use std::str;
 use regex::bytes::Regex;
 
 
-
-
 #[no_mangle]
 pub unsafe extern fn rust_compile(ptr: *const u8, len: u32, out: *mut *mut Regex) {
     let s = {
@@ -48,7 +46,7 @@ fn is_match_internal(re: &Regex, buf: &[u8]) -> bool {
 pub unsafe extern fn is_match(re: *mut Regex, ptr: *const u8, len: u32, out: &mut bool) {
     if let Some(re) = re.as_ref() {
         let buf = slice::from_raw_parts(ptr, len as usize);
-        println!("matching a buffer of length: {}", len);
+        println!("matching a buffer of length {}: {:?}", len, buf);
         *out = is_match_internal(re, buf);
     }
 }

@@ -11,23 +11,23 @@
 // - Zero register (if there is one)
 // - G context pointer register (if there is one)
 // - Frame pointer (if there is one)
-TEXT ·isMatch(SB),NOSPLIT,$0-40
+TEXT ·isMatch(SB), NOSPLIT, $0-40
 	// Set up first two arguments for the function-to-call.  The SysV
 	// calling convention is RDI, RSI, RDX, RCX (etc.), so we load the
 	// values from the stack and into our arguments.
 	//
 	// The Go calling convention is essentially that 0(FP) is the first
 	// argument, 8(FP) is the second, etc.
-	MOVQ re+0(FP), DI
-	MOVQ ptr+8(FP), SI
-	MOVQ len+16(FP), DX
-	MOVQ out+24(FP), CX
+	MOVQ re+8(FP), DI
+	MOVQ ptr+16(FP), SI
+	MOVQ len+24(FP), DX
+	MOVQ out+32(FP), CX
 
 	// In the SysV calling convention (but not Go's), RBX, RBP, and R12-R15
 	// are callee-save, so use RBX to save the existing stack pointer, and
 	// then swap to our passed one.
 	MOVQ SP, BX
-	MOVQ stack+32(FP), SP
+	MOVQ stack+0(FP), SP
 
 	// Note that since both Go and the SysV calling convention have RBP
 	// (frame pointer) as a callee-saved register, as long as we don't
@@ -56,14 +56,13 @@ TEXT ·isMatch(SB),NOSPLIT,$0-40
 	MOVQ BX, SP
 	RET
 
-
-TEXT ·rustCompile(SB),NOSPLIT,$0-32
-	MOVQ ptr+0(FP), DI
-	MOVQ len+8(FP), SI
-	MOVQ out+16(FP), DX
+TEXT ·rustCompile(SB), NOSPLIT, $0-32
+	MOVQ ptr+8(FP), DI
+	MOVQ len+16(FP), SI
+	MOVQ out+24(FP), DX
 
 	MOVQ SP, BX
-	MOVQ stack+24(FP), SP
+	MOVQ stack+0(FP), SP
 
 	MOVQ ·_rust_compile(SB), AX
 	CALL AX
@@ -71,12 +70,11 @@ TEXT ·rustCompile(SB),NOSPLIT,$0-32
 	MOVQ BX, SP
 	RET
 
-
-TEXT ·rustFree(SB),NOSPLIT,$0-16
-	MOVQ ptr+0(FP), DI
+TEXT ·rustFree(SB), NOSPLIT, $0-16
+	MOVQ ptr+8(FP), DI
 
 	MOVQ SP, BX
-	MOVQ stack+8(FP), SP
+	MOVQ stack+0(FP), SP
 
 	MOVQ ·_rust_free(SB), AX
 	CALL AX
