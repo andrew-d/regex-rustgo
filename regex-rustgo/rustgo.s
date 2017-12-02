@@ -81,3 +81,19 @@ TEXT ·rustFree(SB), NOSPLIT, $0-16
 
 	MOVQ BX, SP
 	RET
+
+TEXT ·findIndex(SB), NOSPLIT, $0-48
+	MOVQ re+8(FP), DI
+	MOVQ ptr+16(FP), SI
+	MOVQ len+24(FP), DX
+	MOVQ match+32(FP), CX
+	MOVQ out+40(FP), R8
+
+	MOVQ SP, BX
+	MOVQ stack+0(FP), SP
+
+	MOVQ ·_find_index(SB), AX
+	CALL AX
+
+	MOVQ BX, SP
+	RET

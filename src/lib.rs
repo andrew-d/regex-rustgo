@@ -50,3 +50,24 @@ pub unsafe extern fn is_match(re: *mut Regex, ptr: *const u8, len: u32, out: &mu
         *out = is_match_internal(re, buf);
     }
 }
+
+
+fn find_index_internal(re: &Regex, buf: &[u8], out: &mut [u32]) -> bool {
+    if let Some(mat) = re.find(buf) {
+        out[0] = mat.start() as u32;
+        out[1] = mat.end() as u32;
+        true
+    } else {
+        false
+    }
+}
+
+#[no_mangle]
+pub unsafe extern fn find_index(re: *mut Regex, ptr: *const u8, len: u32, out: *mut u32, success: &mut bool) {
+    if let Some(re) = re.as_ref() {
+        let buf = slice::from_raw_parts(ptr, len as usize);
+        let out = slice::from_raw_parts_mut(out, 2);
+
+        *success = find_index_internal(re, buf, out);
+    }
+}
