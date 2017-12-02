@@ -6,5 +6,8 @@ authors = ["Andrew Dunham <adunham@stripe.com>"]
 [lib]
 crate-type = ["staticlib"]
 
+[profile.release]
+panic = "abort"
+
 [dependencies]
 regex = "0.2"
