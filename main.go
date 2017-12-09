@@ -8,7 +8,7 @@ import (
 
 	// "github.com/andrew-d/regex-rustgo/regex-cgo"
 	"github.com/andrew-d/regex-rustgo/regex-rustgo"
-	"github.com/andrew-d/regex-rustgo/regex-rustgo/stackprovider"
+	// "github.com/andrew-d/regex-rustgo/regex-rustgo/stackprovider"
 )
 
 func main() {
@@ -27,32 +27,19 @@ func main() {
 	}))
 
 	// Stack providers
-	poolst := stackprovider.NewPooledStackProvider(10)
-	staticst, err := stackprovider.NewStaticStackProvider()
-	if err != nil {
-		fmt.Printf("error allocating StaticStackProvider: %s\n", err)
-		return
-	}
+	pool := regex.NewPooledRegex(`.y`, 10)
 
 	// Test pooled provider
-	rustre := regex.Compile(poolst, `.y`)
-	defer rustre.Free()
+	rustre, err := pool.Get()
+	if err != nil {
+		fmt.Printf("error allocating regex: %s\n", err)
+		return
+	}
+	defer pool.Put(rustre)
 
 	fmt.Printf("BenchmarkPooledRustRegexp\t%v\n", testing.Benchmark(func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			if !rustre.Match(x) {
-				b.Fatalf("no match!")
-			}
-		}
-	}))
-
-	// Test static provider
-	strustre := regex.Compile(staticst, `.y`)
-	defer strustre.Free()
-
-	fmt.Printf("BenchmarkStaticRustRegexp\t%v\n", testing.Benchmark(func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			if !strustre.Match(x) {
 				b.Fatalf("no match!")
 			}
 		}
